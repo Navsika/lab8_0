@@ -10,6 +10,38 @@ EDGE {
     long long value;
 };
 
+void swap(EDGE *edges, int a, int b){
+    //function to swap elements in array
+    EDGE tmp = *(edges + a);
+    *(edges + a) = *(edges + b);
+    *(edges + b) = tmp;
+}
+
+int partition(EDGE *edges, int frst, int lst){
+    //function to find pivot element
+    EDGE pivot = *(edges + frst);
+    int i = frst, j = lst;
+
+    while (frst < lst){
+        while ((*(edges + i)).value < pivot.value)
+            i++;
+        while ((*(edges + j)).value > pivot.value)
+            j--;
+        if (i < j)
+            swap(edges, i++, j--);
+        else
+            return j;
+    }
+}
+
+void qckSort(EDGE* edges, int frst, int lst){
+    if (lst <= frst)
+        return;
+    int p = partition(edges, frst, lst);
+    qckSort(edges, 0, p);
+    qckSort(edges, p + 1, lst);
+}
+
 void check(int n, int m) {
     //to check input data
     if (n < 0 || n > 5000) {
@@ -22,11 +54,6 @@ void check(int n, int m) {
         exit(0);
     }
 
-}
-
-int cmp(const void *a, const void *b) {
-    //comparator for qsort
-    return ((EDGE *) a)->value - ((EDGE *) b)->value;
 }
 
 int findParent(int parent[], int elem) {
@@ -54,11 +81,11 @@ void unionSet(int a, int b, int parent[], int rank[]) {
 void printRes(EDGE *res, int n) {
     //to print the result
     for (int i = 0; i < n; ++i)
-        printf("%d %d\n", res[i].start, res[i].end);
+        printf("%d %d\n", (*(res + i)).start, (*(res + i)).end);
 
 }
 
-void kruskal(int n, EDGE *edges) {
+void kruskal(int n, int m, EDGE *edges) {
     //need two arrays
     int *parent, *rank;
     parent = (int *) malloc(n * sizeof(int));
@@ -74,16 +101,16 @@ void kruskal(int n, EDGE *edges) {
     }
 
     res = (EDGE *) malloc((n - 1) * sizeof(EDGE));
-    qsort(edges, n, sizeof(EDGE), cmp);
+    qckSort(edges, 0, m - 1);
 
     while (edgeMST < (n - 1) && numVert < n) {
-        EDGE cur = edges[numVert++];
+        EDGE cur = *(edges + numVert++);
 
         parent1 = findParent(parent, cur.start - 1);
         parent2 = findParent(parent, cur.end - 1);
 
         if (parent1 != parent2) {
-            res[edgeMST++] = cur;
+            *(res + edgeMST++) = cur;
             unionSet(parent1, parent2, parent, rank);
         }
     }
@@ -94,8 +121,10 @@ void kruskal(int n, EDGE *edges) {
     }
 
     printRes(res, edgeMST);
+
     free(parent);
     free(rank);
+    free(res);
 }
 
 int main() {
@@ -133,9 +162,9 @@ int main() {
         if (start == n || end == n)
             count++;
 
-        edges[i].start = start;
-        edges[i].end = end;
-        edges[i].value = value;
+        (*(edges + i)).start = start;
+        (*(edges + i)).end = end;
+        (*(edges + i)).value = value;
     }
     check(n, m);
 
@@ -144,8 +173,8 @@ int main() {
         exit(0);
     }
 
-    kruskal(n, edges);
-    free(edges);
+    kruskal(n, m, edges);
 
+    free(edges);
     return 0;
 }
